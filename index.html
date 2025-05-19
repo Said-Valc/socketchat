@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>PHP Socket Chat</title>
+    <style>
+        #messages {
+            height: 300px;
+            border: 1px solid #ccc;
+            overflow-y: scroll;
+            padding: 10px;
+        }
+
+        #input {
+            width: 80%;
+        }
+
+        #send {
+            width: 18%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="messages"></div>
+    <input type="text" id="input" placeholder="Напиши сообщение..." />
+    <button id="send">Отправить</button>
+
+    <script>
+        const wsHost = '127.0.0.1';
+        const wsPort = 8081;
+        let socket;
+
+        function appendMessage(msg) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML += msg + '<br>';
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function connect() {
+            socket = new WebSocket('ws://' + wsHost + ':' + wsPort);
+
+            socket.onopen = () => {
+                appendMessage('Соединение установлено');
+            };
+
+            socket.onmessage = (event) => {
+                appendMessage('Сервер: ' + event.data);
+            };
+
+            socket.onclose = () => {
+                appendMessage('Соединение закрыто');
+                setTimeout(connect, 3000); 
+            };
+
+            socket.onerror = (error) => {
+                appendMessage('Ошибка: ' + error.message);
+            };
+        }
+
+        document.getElementById('send').onclick = () => {
+            const input = document.getElementById('input');
+            if (!input.value) return;
+            socket.send(input.value);
+            appendMessage('Ты: ' + input.value);
+            input.value = '';
+        };
+
+        connect();
+    </script>
+
+</body>
+
+</html>
